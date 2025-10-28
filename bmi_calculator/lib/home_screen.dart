@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+enum WeightType{kg, lb}
 enum HeightType { cm, feetInch }
 
 class HomeScreen extends StatefulWidget {
@@ -10,14 +11,30 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  WeightType weightType = WeightType.kg;
   HeightType heightType = HeightType.cm;
 
   final weightCtr = TextEditingController();
   final cmCtr = TextEditingController();
   final feetCtr = TextEditingController();
   final inchCtr = TextEditingController();
+
   String _bmiResult = "";
   String? category;
+  Color getCategoryColor(String? category) {
+    switch (category) {
+      case "Underweight":
+        return Colors.blue;
+      case "Healthy Weight":
+        return Colors.green;
+      case "Overweight":
+        return Colors.orange;
+      case "Obesity":
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
 
   String categoryResult(double bmi) {
     if (bmi < 18.5) return "Underweight";
@@ -25,6 +42,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (bmi < 29.9) return "Overweight";
     return "Obesity";
   }
+
+
 
   double? cmToM() {
     final cm = double.tryParse(cmCtr.text.trim());
@@ -34,8 +53,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   double? feetInchToM() {
-    final feet = double.tryParse(feetCtr.text.trim());
-    final inch = double.tryParse(inchCtr.text.trim());
+    double? feet = double.tryParse(feetCtr.text.trim());
+    double? inch = double.tryParse(inchCtr.text.trim());
 
     if (feet == null || feet <= 0 || inch == null) {
       ScaffoldMessenger.of(
@@ -43,6 +62,15 @@ class _HomeScreenState extends State<HomeScreen> {
       ).showSnackBar(SnackBar(content: Text('Invalid Value')));
       return null;
     }
+    if (inch >= 12) {
+      feet += (inch ~/ 12); // Add extra feet
+      inch = inch % 12;     // Keep remaining inches
+      // Update text fields so UI shows the adjusted values
+      feetCtr.text = feet.toStringAsFixed(0);
+      inchCtr.text = inch.toStringAsFixed(0);
+    }
+
+
     final totalInch = feet * 12 + inch;
     if (totalInch <= 0) {
       ScaffoldMessenger.of(
@@ -61,6 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ).showSnackBar(SnackBar(content: Text('Invalid Value')));
       return;
     }
+
     final m = heightType == HeightType.cm ? cmToM() : feetInchToM();
     if (m == null) {
       ScaffoldMessenger.of(
@@ -68,7 +97,8 @@ class _HomeScreenState extends State<HomeScreen> {
       ).showSnackBar(SnackBar(content: Text('Invalid Value')));
       return;
     }
-    final bmi = weight / (m * m);
+    final weightInKg = weightType == WeightType.lb ? weight * 0.45359237 : weight;
+    final bmi = weightInKg / (m * m);
     final cat = categoryResult(bmi);
     setState(() {
       _bmiResult = bmi.toStringAsFixed(2);
@@ -92,13 +122,30 @@ class _HomeScreenState extends State<HomeScreen> {
       body: ListView(
         padding: EdgeInsets.all(15),
         children: [
+          SegmentedButton<WeightType>(segments: const[
+            ButtonSegment<WeightType>(value: WeightType.kg,
+              label: Text("Kg"),),
+            ButtonSegment<WeightType>(value: WeightType.lb,
+              label: Text("Lb"),)
+          ],
+            selected:{weightType},
+            onSelectionChanged: (value) {
+              setState(() {
+                weightType = value.first;
+              });
+            },
+          ),
+          SizedBox(height: 10),
+
           TextFormField(
             controller: weightCtr,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
-              labelText: "Weight (Kg)",
+              labelText: weightType == WeightType.kg ? "Weight (Kg)" : "Weight (Lb)",
               border: OutlineInputBorder(),
             ),
           ),
+
           const SizedBox(height: 15),
           Text(
             'Height Unit',
@@ -135,6 +182,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Expanded(
                   child: TextFormField(
                     controller: feetCtr,
+                      keyboardType: TextInputType.numberWithOptions(decimal: true),
                     decoration: InputDecoration(
                       labelText: "Feet(')",
                       border: OutlineInputBorder(),
@@ -145,6 +193,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Expanded(
                   child: TextFormField(
                     controller: inchCtr,
+                    keyboardType: TextInputType.numberWithOptions(decimal: true),
                     decoration: InputDecoration(
                       labelText: 'Inch(")',
                       border: OutlineInputBorder(),
@@ -158,16 +207,51 @@ class _HomeScreenState extends State<HomeScreen> {
           ElevatedButton(onPressed: _calculator, child: Text("Show Result")),
           const SizedBox(height: 15),
           Card(
-            child: ListTile(
-              title: Text(
-                "Result : $_bmiResult",
-                style: TextStyle(fontSize: 20),
+            elevation: 3,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Your BMI Score:",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    _bmiResult.isEmpty ? "—" : _bmiResult,
+                    style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  if (category != null)
+                    Row(
+                      children: [
+                        Text(
+                          "Category: ",
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        Chip(
+                          label: Text(
+                            category!,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          backgroundColor: getCategoryColor(category),
+                        ),
+                      ],
+                    ),
+                ],
               ),
             ),
           ),
-          SizedBox(height: 8),
-          Card(child: ListTile(title: Text("Category : $category", style:TextStyle(fontSize: 20),))),
-          const SizedBox(height: 15),
+
         ],
       ),
     );
