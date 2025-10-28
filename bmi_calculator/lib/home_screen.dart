@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-enum WeightType{kg, lb}
-enum HeightType { meter,cm,feetInch }
+enum WeightType { kg, lb }
+
+enum HeightType { meter, cm, feetInch }
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -35,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case "Obesity":
         return Colors.red;
       default:
-        return Colors.grey;
+        return Colors.white;
     }
   }
 
@@ -51,7 +52,6 @@ class _HomeScreenState extends State<HomeScreen> {
   double? cmToM() {
     final cm = double.tryParse(cmCtr.text.trim());
     if (cm == null || cm <= 0) return null;
-
     return cm / 100.0;
   }
 
@@ -111,14 +111,16 @@ class _HomeScreenState extends State<HomeScreen> {
         break;
     }
 
-    if (m == null || m <=0) {
+    if (m == null || m <= 0) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Invalid Value')));
       return;
     }
 
-    final weightInKg = weightType == WeightType.lb ? weight * 0.45359237 : weight;
+    final weightInKg = weightType == WeightType.lb
+        ? weight * 0.45359237
+        : weight;
     final bmi = weightInKg / (m * m);
     final cat = categoryResult(bmi);
 
@@ -147,32 +149,69 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('BMI Calculator'), centerTitle: true),
+      appBar: AppBar(
+        title: Text(
+          '⏲ BMI Calculator',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.green,
+        toolbarHeight: 55,
+      ),
       body: ListView(
         padding: EdgeInsets.all(15),
         children: [
+          SizedBox(height: 12),
           //..... Weight toggle ......
-          SegmentedButton<WeightType>(segments: const[
-            ButtonSegment<WeightType>(value: WeightType.kg,
-              label: Text("Kg"),),
-            ButtonSegment<WeightType>(value: WeightType.lb,
-              label: Text("Lb"),)
-          ],
-            selected:{weightType},
+          SegmentedButton<WeightType>(
+            segments: const [
+              ButtonSegment<WeightType>(
+                value: WeightType.kg,
+                label: Text(
+                  "Kg",
+                  style: TextStyle(color: Colors.black, fontSize: 16),
+                ),
+              ),
+              ButtonSegment<WeightType>(
+                value: WeightType.lb,
+                label: Text(
+                  "Lb",
+                  style: TextStyle(color: Colors.black, fontSize: 16),
+                ),
+              ),
+            ],
+            selected: {weightType},
             onSelectionChanged: (value) {
               setState(() {
                 weightType = value.first;
               });
             },
+            style: ButtonStyle(
+              backgroundColor: WidgetStateProperty.resolveWith<Color?>((
+                states,
+              ) {
+                if (states.contains(WidgetState.selected)) {
+                  return Colors.green.withOpacity(0.9);
+                }
+                return Colors.grey.withOpacity(0.3);
+              }),
+              shape: WidgetStateProperty.all(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(11), // Rounded corners
+                ),
+              ),
+            ),
           ),
-          SizedBox(height: 10),
+          SizedBox(height: 15),
 
           //...... Weight input .......
           TextFormField(
             controller: weightCtr,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
-              labelText: weightType == WeightType.kg ? "Weight (Kg)" : "Weight (Lb)",
+              labelText: weightType == WeightType.kg
+                  ? "Weight (Kg)"
+                  : "Weight (Lb)",
               border: OutlineInputBorder(),
             ),
           ),
@@ -188,22 +227,46 @@ class _HomeScreenState extends State<HomeScreen> {
             segments: [
               const ButtonSegment<HeightType>(
                 value: HeightType.cm,
-                label: Text("cm"),
+                label: Text(
+                  "cm",
+                  style: TextStyle(color: Colors.black, fontSize: 14),
+                ),
               ),
               const ButtonSegment<HeightType>(
                 value: HeightType.meter,
-                label: Text("Meter"),
+                label: Text(
+                  "Meter",
+                  style: TextStyle(color: Colors.black, fontSize: 14),
+                ),
               ),
               const ButtonSegment<HeightType>(
                 value: HeightType.feetInch,
-                label: Text("Feet/Inch"),
+                label: Text(
+                  "Feet/Inch",
+                  style: TextStyle(color: Colors.black, fontSize: 14),
+                ),
               ),
             ],
             selected: {heightType},
             onSelectionChanged: (value) =>
                 setState(() => heightType = value.first),
+            style: ButtonStyle(
+              backgroundColor: WidgetStateProperty.resolveWith<Color?>((
+                states,
+              ) {
+                if (states.contains(WidgetState.selected)) {
+                  return Colors.green.withOpacity(0.9);
+                }
+                return Colors.grey.withOpacity(0.3);
+              }),
+              shape: WidgetStateProperty.all(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(11), // Rounded corners
+                ),
+              ),
+            ),
           ),
-          
+
           const SizedBox(height: 10),
 
           //....... Height inputs .....
@@ -229,7 +292,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 Expanded(
                   child: TextFormField(
                     controller: feetCtr,
-                      keyboardType: TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     decoration: InputDecoration(
                       labelText: "Feet(')",
                       border: OutlineInputBorder(),
@@ -240,7 +305,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 Expanded(
                   child: TextFormField(
                     controller: inchCtr,
-                    keyboardType: TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     decoration: InputDecoration(
                       labelText: 'Inch(")',
                       border: OutlineInputBorder(),
@@ -257,7 +324,9 @@ class _HomeScreenState extends State<HomeScreen> {
           //........ Result Card ....
           Card(
             elevation: 3,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -270,10 +339,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 10),
                   Text(
                     _bmiResult.isEmpty ? "—" : _bmiResult,
-                    style: TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
                   if (category != null)
@@ -281,7 +347,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Text(
                           "Category: ",
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         Chip(
                           label: Text(
@@ -300,7 +369,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-
         ],
       ),
     );
