@@ -158,9 +158,14 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.green,
         toolbarHeight: 55,
       ),
+      backgroundColor: Colors.grey[100],
       body: ListView(
         padding: EdgeInsets.all(15),
         children: [
+          Text(
+            'Weight Unit',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
           SizedBox(height: 12),
           //..... Weight toggle ......
           SegmentedButton<WeightType>(
@@ -202,7 +207,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          SizedBox(height: 15),
+          SizedBox(height: 13),
 
           //...... Weight input .......
           TextFormField(
@@ -318,7 +323,19 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
           const SizedBox(height: 15),
-          ElevatedButton(onPressed: _calculator, child: Text("Show Result")),
+          ElevatedButton(
+              onPressed: _calculator,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+              elevation: 3, // Shadow depth
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+              child: Text("Show Result",style: TextStyle(fontSize: 15),),
+          ),
           const SizedBox(height: 15),
 
           //........ Result Card ....
